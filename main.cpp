@@ -4,11 +4,12 @@
 #include <cmath>
 using namespace std;
 
-constexpr int SIZE = 1000;
+constexpr int SIZE = 300;
 bool board[SIZE][SIZE];
 int main()
 {
-    for (int i = 0; i < 1; i++)
+    clock_t cl = clock();
+    for (int i = 0; i < 10; i++)
     {
         memset(board,0,sizeof(board));
         Alg4Dnmc clag(SIZE);
@@ -22,4 +23,5 @@ int main()
             cout << endl;
         }
     }
+    cout << double(clock() - cl) / CLOCKS_PER_SEC;
 }
