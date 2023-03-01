@@ -4,6 +4,9 @@
 #include <ctime>
 #include <cmath>
 #include <cstring>
+#include <cstdint>
+#include <cassert>
+
 using namespace std;
 
 struct Queen
@@ -340,17 +343,16 @@ public:
 template <int n>
 int ClimbingAlg_RandomStart_FirstBest<n>::seed = time(nullptr);
 
-
-inline int calSuitVal(int* ar, int n, int out)
+inline int calSuitVal(int *ar, int n, int out)
 {
-    for (int i=0;i<n-1;i++)
-        for (int j=i+1;j<n;j++)
-            if (ar[i]==ar[j]||abs(i-j)==abs(ar[i]-ar[j]))
+    for (int i = 0; i < n - 1; i++)
+        for (int j = i + 1; j < n; j++)
+            if (ar[i] == ar[j] || abs(i - j) == abs(ar[i] - ar[j]))
                 out--;
     return out;
 }
 
-template <int n,int popSize>
+template <int n, int popSize>
 class GeneticAlg
 {
 private:
@@ -358,67 +360,369 @@ private:
     int pop[2][popSize][n];
     int suitVal[popSize];
     int suitLineForDistribution[popSize];
-    int targetSuitVal = n*(n-1)/2;
+    int targetSuitVal = n * (n - 1) / 2;
     minstd_rand gen = minstd_rand(seed);
     uniform_int_distribution<int> uniDibut = uniform_int_distribution(0, n - 1);
 
-//return val (min,max)
-pair<int,int> randomizePop()
-{
-    pair<int,int> out{INT32_MAX,0};
-    for (int i=0;i<popSize;i++)
-        for (int j=0;j<n;j++)
-            pop[0][i][j]=uniDibut(gen);
-    for (int i=0;i<popSize;i++)
+    // return val (min,max)
+    pair<int, int> randomizePop()
     {
-        suitVal[i]=calSuitVal(pop[0][i],n,targetSuitVal);
-        out.first=min(suitVal[i],out.first);
-        out.second=max(suitVal[i],out.second);
+        pair<int, int> out{INT32_MAX, 0};
+        for (int i = 0; i < popSize; i++)
+            for (int j = 0; j < n; j++)
+                pop[0][i][j] = uniDibut(gen);
+        for (int i = 0; i < popSize; i++)
+        {
+            suitVal[i] = calSuitVal(pop[0][i], n, targetSuitVal);
+            out.first = min(suitVal[i], out.first);
+            out.second = max(suitVal[i], out.second);
+        }
+        return out;
     }
-    return out;
-}
+
 public:
-    array<int,n> solve(double muteProbility = 0.1)
+    array<int, n> solve(double muteProbility = 0.1)
     {
         bernoulli_distribution bnlDibut(muteProbility);
 
-        pair<int,int> minmaxSuitVal = randomizePop();
-        int popSwitch=0;
-        while (minmaxSuitVal.second<targetSuitVal)
+        pair<int, int> minmaxSuitVal = randomizePop();
+        int popSwitch = 0;
+        while (minmaxSuitVal.second < targetSuitVal)
         {
-            for (int i=0;i<popSize;i++)
+            for (int i = 0; i < popSize; i++)
             {
-                suitLineForDistribution[i]=suitVal[i]-minmaxSuitVal.first;
+                suitLineForDistribution[i] = suitVal[i] - minmaxSuitVal.first;
             }
-            discrete_distribution dctDibut(suitLineForDistribution,suitLineForDistribution+popSize);
+            discrete_distribution dctDibut(suitLineForDistribution, suitLineForDistribution + popSize);
             int prePopSwitch = popSwitch;
-            popSwitch=(popSwitch+1)%2;
-            
-            minmaxSuitVal=pair<int,int>(INT32_MAX,0);
-            for (int i=0;i<popSize;i++)
+            popSwitch = (popSwitch + 1) % 2;
+
+            minmaxSuitVal = pair<int, int>(INT32_MAX, 0);
+            for (int i = 0; i < popSize; i++)
             {
-                int choice[2] = {dctDibut(gen),dctDibut(gen)};
+                int choice[2] = {dctDibut(gen), dctDibut(gen)};
                 int breakPoint = uniDibut(gen);
-                
-                for (int j=0;j<breakPoint;j++)
-                    pop[popSwitch][i][j]=pop[prePopSwitch][choice[0]][j];
-                for (int j=breakPoint;j<n;j++)
-                    pop[popSwitch][i][j]=pop[prePopSwitch][choice[1]][j];
+
+                for (int j = 0; j < breakPoint; j++)
+                    pop[popSwitch][i][j] = pop[prePopSwitch][choice[0]][j];
+                for (int j = breakPoint; j < n; j++)
+                    pop[popSwitch][i][j] = pop[prePopSwitch][choice[1]][j];
                 if (bnlDibut(gen))
                 {
-                    pop[popSwitch][i][uniDibut(gen)]=uniDibut(gen);
+                    pop[popSwitch][i][uniDibut(gen)] = uniDibut(gen);
                 }
-                suitVal[i]=calSuitVal(pop[popSwitch][i],n,targetSuitVal);
-                minmaxSuitVal.first=min(minmaxSuitVal.first,suitVal[i]);
-                minmaxSuitVal.second=max(minmaxSuitVal.second,suitVal[i]);
-            }  
+                suitVal[i] = calSuitVal(pop[popSwitch][i], n, targetSuitVal);
+                minmaxSuitVal.first = min(minmaxSuitVal.first, suitVal[i]);
+                minmaxSuitVal.second = max(minmaxSuitVal.second, suitVal[i]);
+            }
         }
-        array<int,n> ans;
-        int bestIndex = max_element(suitVal,suitVal+popSize)-suitVal;
-        copy(pop[popSwitch][bestIndex],pop[popSwitch][bestIndex]+n,ans.begin());
-        calSuitVal(pop[popSwitch][bestIndex],n,targetSuitVal);
+        array<int, n> ans;
+        int bestIndex = max_element(suitVal, suitVal + popSize) - suitVal;
+        copy(pop[popSwitch][bestIndex], pop[popSwitch][bestIndex] + n, ans.begin());
+        calSuitVal(pop[popSwitch][bestIndex], n, targetSuitVal);
         return ans;
     }
 };
-template <int n,int popSize>
-int GeneticAlg<n,popSize>::seed = time(nullptr);
+template <int n, int popSize>
+int GeneticAlg<n, popSize>::seed = time(nullptr);
+
+template <int n>
+class Alg4
+{
+private: 
+    struct ShuffleGen
+    {
+        minstd_rand& genInserted;
+        uniform_int_distribution<int> dtbtForShuffle;
+        ShuffleGen(minstd_rand& m) : genInserted(m) {};
+        int operator ()(int x) {return dtbtForShuffle(genInserted)%x;}
+    };
+    
+    // data
+    static int seed;
+    int board[n];
+    bool colOccupied[n];
+
+    // for fast diag conflict judgement
+    //[0] is i-col[i]+n-1 in [0,2n-2], [1] is i+col[i] in [0,2n-2]
+    // store total num
+    int diagCfl[2][2 * n - 1];
+    int buffer[n];
+    int conflictPairCnt;
+    int* pBuffer[8];
+
+    minstd_rand gen = minstd_rand(seed);
+    uniform_int_distribution<int> distribution = uniform_int_distribution<int>(0, n - 1);
+    ShuffleGen shuffleGen = ShuffleGen(gen);
+
+private:
+    int preGenerate() // random generate the maxNumber in tryTimes for each place
+    {
+        memset(colOccupied, 0, sizeof(colOccupied));
+        memset(diagCfl, 0, sizeof(diagCfl));
+        for (int i=0;i<n;i++)
+            buffer[i]=i;
+        conflictPairCnt = 0;
+        int queenOk;
+        for (queenOk = 0; queenOk < n; queenOk++)
+        {
+            bool found = false;
+            random_shuffle(buffer,buffer+n,shuffleGen);
+            for (int i=0;i<n;i++)
+            {
+                int j = buffer[i];
+                if (colOccupied[j] || diagCfl[0][queenOk - j + n - 1] || diagCfl[1][queenOk + j])
+                    continue;
+                found = true;
+                board[queenOk] = j;
+                colOccupied[j] = true;
+                diagCfl[0][queenOk - j + n - 1] = 1;
+                diagCfl[1][queenOk + j] = 1;
+                break;
+            }
+            if (!found)
+                break;
+        }
+
+        for (int i = queenOk; i < n; i++)
+            buffer[i-queenOk] = i;
+        random_shuffle(buffer, buffer + n - queenOk, shuffleGen);
+        for (int j = 0, i=0; j < n; j++)
+        {
+            if (colOccupied[j])
+                continue;
+            colOccupied[j] = true;
+            conflictPairCnt += diagCfl[0][buffer[i] - j + n - 1]++;
+            conflictPairCnt += diagCfl[1][buffer[i] + j]++;
+            board[buffer[i++]] = j;
+        }
+        return queenOk;
+    }
+
+    inline int calCost(int x, int y)
+    {
+        // assert(i!=j);
+        int out = 0;
+        pBuffer[0] = &diagCfl[0][x-board[x]+n-1];
+        pBuffer[1] = &diagCfl[1][x+board[x]];
+        pBuffer[2] = &diagCfl[0][y-board[y]+n-1];
+        pBuffer[3] = &diagCfl[1][y+board[y]];
+        pBuffer[4] = &diagCfl[0][x-board[y]+n-1];
+        pBuffer[5] = &diagCfl[1][x+board[y]];
+        pBuffer[6] = &diagCfl[0][y-board[x]+n-1];
+        pBuffer[7] = &diagCfl[1][y+board[x]];
+        for (int i=0;i<4;i++)
+            out -= --(*pBuffer[i]);
+        for (int i=4;i<8;i++)
+            out += (*pBuffer[i])++;
+        for (int i=0;i<4;i++)
+            (*pBuffer[i])++;
+        for (int i=4;i<8;i++)
+            --(*pBuffer[i]);
+        return out;
+    }
+
+    inline void swapQueens(int x, int y)
+    {
+        pBuffer[0] = &diagCfl[0][x-board[x]+n-1];
+        pBuffer[1] = &diagCfl[1][x+board[x]];
+        pBuffer[2] = &diagCfl[0][y-board[y]+n-1];
+        pBuffer[3] = &diagCfl[1][y+board[y]];
+        pBuffer[4] = &diagCfl[0][x-board[y]+n-1];
+        pBuffer[5] = &diagCfl[1][x+board[y]];
+        pBuffer[6] = &diagCfl[0][y-board[x]+n-1];
+        pBuffer[7] = &diagCfl[1][y+board[x]];
+        for (int i=0;i<4;i++)
+            --(*pBuffer[i]);
+        for (int i=4;i<8;i++)
+            (*pBuffer[i])++;
+        swap(board[x],board[y]);
+    }
+
+public:
+    const int *solve(int maxRounds = INT32_MAX)
+    {
+        while (maxRounds--)
+        {
+            int queenOk = preGenerate();
+            bool found = true;
+            uniform_int_distribution<int> dtbt(queenOk, n - 1);
+            for (int i = 0; i < n; i++)
+                buffer[i] = i;
+            while (found)
+            {
+                found = false;
+                if (conflictPairCnt==0)
+                    return board;
+                int first = dtbt(gen), second;
+                int tmpCost;
+                random_shuffle(buffer, buffer + n, shuffleGen);
+                for (int i = 0; i < n; i++)
+                {
+                    if (buffer[i] == first)
+                        continue;
+                    if ((tmpCost=calCost(first,buffer[i]))>=0) continue;
+                    found = true;
+                    swapQueens(first,buffer[i]);
+                    conflictPairCnt += tmpCost;
+                    break;
+                }
+            }
+        }
+        return nullptr;
+    }
+};
+template <int n>
+int Alg4<n>::seed = time(nullptr);
+
+
+class Alg4Dnmc
+{
+private: 
+    struct ShuffleGen
+    {
+        minstd_rand& genInserted;
+        uniform_int_distribution<int> dtbtForShuffle;
+        ShuffleGen(minstd_rand& m) : genInserted(m) {};
+        int operator ()(int x) {return dtbtForShuffle(genInserted)%x;}
+    };
+    
+    // data
+    const int n;
+    static int seed;
+    vector<int> board = vector<int>(n);
+    vector<bool> colOccupied;
+
+    // for fast diag conflict judgement
+    //[0] is i-col[i]+n-1 in [0,2n-2], [1] is i+col[i] in [0,2n-2]
+    // store total num
+    vector<int> diagCfl[2];
+    vector<int> buffer = vector<int>(n);
+    int conflictPairCnt;
+    int* pBuffer[8];
+
+    minstd_rand gen = minstd_rand(seed);
+    uniform_int_distribution<int> distribution = uniform_int_distribution<int>(0, n - 1);
+    ShuffleGen shuffleGen = ShuffleGen(gen);
+
+public:
+    Alg4Dnmc(int m) : n(m) {}
+private:
+    int preGenerate() // random generate the maxNumber in tryTimes for each place
+    {
+        colOccupied.assign(n,0);
+        diagCfl[0].assign(2*n-1,0);
+        diagCfl[1].assign(2*n-1,0);
+        for (int i=0;i<n;i++)
+            buffer[i]=i;
+        conflictPairCnt = 0;
+        int queenOk;
+        for (queenOk = 0; queenOk < n; queenOk++)
+        {
+            bool found = false;
+            random_shuffle(buffer.begin(),buffer.end(),shuffleGen);
+            for (int i=0;i<n;i++)
+            {
+                int j = buffer[i];
+                if (colOccupied[j] || diagCfl[0][queenOk - j + n - 1] || diagCfl[1][queenOk + j])
+                    continue;
+                found = true;
+                board[queenOk] = j;
+                colOccupied[j] = true;
+                diagCfl[0][queenOk - j + n - 1] = 1;
+                diagCfl[1][queenOk + j] = 1;
+                break;
+            }
+            if (!found)
+                break;
+        }
+
+        for (int i = queenOk; i < n; i++)
+            buffer[i-queenOk] = i;
+        random_shuffle(&buffer[0], &buffer[0] + n - queenOk, shuffleGen);
+        for (int j = 0, i=0; j < n; j++)
+        {
+            if (colOccupied[j])
+                continue;
+            colOccupied[j] = true;
+            conflictPairCnt += diagCfl[0][buffer[i] - j + n - 1]++;
+            conflictPairCnt += diagCfl[1][buffer[i] + j]++;
+            board[buffer[i++]] = j;
+        }
+        return queenOk;
+    }
+
+    inline int calCost(int x, int y)
+    {
+        // assert(i!=j);
+        int out = 0;
+        pBuffer[0] = &diagCfl[0][x-board[x]+n-1];
+        pBuffer[1] = &diagCfl[1][x+board[x]];
+        pBuffer[2] = &diagCfl[0][y-board[y]+n-1];
+        pBuffer[3] = &diagCfl[1][y+board[y]];
+        pBuffer[4] = &diagCfl[0][x-board[y]+n-1];
+        pBuffer[5] = &diagCfl[1][x+board[y]];
+        pBuffer[6] = &diagCfl[0][y-board[x]+n-1];
+        pBuffer[7] = &diagCfl[1][y+board[x]];
+        for (int i=0;i<4;i++)
+            out -= --(*pBuffer[i]);
+        for (int i=4;i<8;i++)
+            out += (*pBuffer[i])++;
+        for (int i=0;i<4;i++)
+            (*pBuffer[i])++;
+        for (int i=4;i<8;i++)
+            --(*pBuffer[i]);
+        return out;
+    }
+
+    inline void swapQueens(int x, int y)
+    {
+        pBuffer[0] = &diagCfl[0][x-board[x]+n-1];
+        pBuffer[1] = &diagCfl[1][x+board[x]];
+        pBuffer[2] = &diagCfl[0][y-board[y]+n-1];
+        pBuffer[3] = &diagCfl[1][y+board[y]];
+        pBuffer[4] = &diagCfl[0][x-board[y]+n-1];
+        pBuffer[5] = &diagCfl[1][x+board[y]];
+        pBuffer[6] = &diagCfl[0][y-board[x]+n-1];
+        pBuffer[7] = &diagCfl[1][y+board[x]];
+        for (int i=0;i<4;i++)
+            --(*pBuffer[i]);
+        for (int i=4;i<8;i++)
+            (*pBuffer[i])++;
+        swap(board[x],board[y]);
+    }
+
+public:
+    const int *solve(int maxRounds = INT32_MAX)
+    {
+        while (maxRounds--)
+        {
+            int queenOk = preGenerate();
+            bool found = true;
+            uniform_int_distribution<int> dtbt(queenOk, n - 1);
+            for (int i = 0; i < n; i++)
+                buffer[i] = i;
+            while (found)
+            {
+                found = false;
+                if (conflictPairCnt==0)
+                    return &board[0];
+                int first = dtbt(gen), second;
+                int tmpCost;
+                random_shuffle(buffer.begin(), buffer.end(), shuffleGen);
+                for (int i = 0; i < n; i++)
+                {
+                    if (buffer[i] == first)
+                        continue;
+                    if ((tmpCost=calCost(first,buffer[i]))>=0) continue;
+                    found = true;
+                    swapQueens(first,buffer[i]);
+                    conflictPairCnt += tmpCost;
+                    break;
+                }
+            }
+        }
+        return nullptr;
+    }
+};
+int Alg4Dnmc::seed = time(nullptr);
