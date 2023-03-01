@@ -24,7 +24,6 @@ private:
     vector<int> buffer = vector<int>(n);
     int conflictPairCnt;
     int* pBuffer[8];
-    int preGenLimit = n;
 
     minstd_rand gen = minstd_rand(seed);
     uniform_int_distribution<int> distribution = uniform_int_distribution<int>(0, n - 1);
@@ -46,9 +45,28 @@ private:
         {
             bool found = false;
             //random_shuffle(buffer.begin(),buffer.end(),shuffleGen);
-            for (int i=0;i<preGenLimit;i++)
+            for (int i=0;i< n;i++)
             {
                 int j = distribution(gen);
+                if (colOccupied[j] || diagCfl[0][queenOk - j + n - 1] || diagCfl[1][queenOk + j])
+                    continue;
+                found = true;
+                board[queenOk] = j;
+                colOccupied[j] = true;
+                diagCfl[0][queenOk - j + n - 1] = 1;
+                diagCfl[1][queenOk + j] = 1;
+                break;
+            }
+            if (!found)
+                break;
+        }
+            for (; queenOk < n; queenOk++)
+        {
+            bool found = false;
+            //random_shuffle(buffer.begin(),buffer.end(),shuffleGen);
+            for (int i=0;i< n;i++)
+            {
+                int j = i;
                 if (colOccupied[j] || diagCfl[0][queenOk - j + n - 1] || diagCfl[1][queenOk + j])
                     continue;
                 found = true;

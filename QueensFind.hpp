@@ -877,9 +877,8 @@ public:
     {
         while (maxRounds--)
         {
-            cl.begin();
+
             int queenOk = preGenerate();
-            cl.end();
             bool found = true;
             uniform_int_distribution<int> dtbt(queenOk, n - 1);
             for (int i = 0; i < n; i++)
