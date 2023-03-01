@@ -1,6 +1,6 @@
 #include<bits/stdc++.h>
 using namespace std;
-class Alg4Dnmc
+class Alg4Dnmc_P
 {
 private: 
     struct ShuffleGen
@@ -24,13 +24,14 @@ private:
     vector<int> buffer = vector<int>(n);
     int conflictPairCnt;
     int* pBuffer[8];
+    int preGenLimit = n;
 
     minstd_rand gen = minstd_rand(seed);
-    uniform_int_distribution<int> distribution = uniform_int_distribution<>(0, n - 1);
+    uniform_int_distribution<int> distribution = uniform_int_distribution<int>(0, n - 1);
     ShuffleGen shuffleGen = ShuffleGen(gen);
 
 public:
-    Alg4Dnmc(int m) : n(m) {}
+    Alg4Dnmc_P(int m) : n(m) {}
 private:
     int preGenerate() // random generate the maxNumber in tryTimes for each place
     {
@@ -44,10 +45,10 @@ private:
         for (queenOk = 0; queenOk < n; queenOk++)
         {
             bool found = false;
-            random_shuffle(buffer.begin(),buffer.end(),shuffleGen);
-            for (int i=0;i<n;i++)
+            //random_shuffle(buffer.begin(),buffer.end(),shuffleGen);
+            for (int i=0;i<preGenLimit;i++)
             {
-                int j = buffer[i];
+                int j = distribution(gen);
                 if (colOccupied[j] || diagCfl[0][queenOk - j + n - 1] || diagCfl[1][queenOk + j])
                     continue;
                 found = true;
@@ -149,7 +150,7 @@ public:
         return nullptr;
     }
 };
-int Alg4Dnmc::seed = time(nullptr);
+int Alg4Dnmc_P::seed = time(nullptr);
 
 int main()
 {
@@ -159,7 +160,7 @@ int main()
     const int *ans;
     while (cin >> n && n)
     {
-        Alg4Dnmc solver(n);
+        Alg4Dnmc_P solver(n);
         ans = solver.solve();
         for (int i=0;i<n;i++)
         {
