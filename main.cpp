@@ -4,8 +4,7 @@
 #include <cmath>
 using namespace std;
 
-constexpr int SIZE = 100000;
-bool board[SIZE][SIZE];
+constexpr int SIZE = 1000000;
 int main()
 {
     clock_t mcl = clock();
@@ -13,7 +12,6 @@ int main()
     {
         Alg4Dnmc_PP clag(SIZE);
         const int *out = clag.solve(INT32_MAX);
-        memset(board,0,sizeof(board));
         for (int i=0;i<SIZE;i++)
             cout << out[i] << ' ';
         /*

@@ -1,8 +1,10 @@
+// -mcmodel=medium
 #include<bits/stdc++.h>
 using namespace std;
 class Alg4Dnmc_PP
 {
 private:
+
     struct ShuffleGen
     {
         minstd_rand &genInserted;
@@ -205,7 +207,7 @@ public:
         return nullptr;
     }
 };
-int Alg4Dnmc_PP::seed = 0;
+int Alg4Dnmc_PP::seed = time(nullptr);
 
 int main()
 {
@@ -213,8 +215,9 @@ int main()
     cin.tie(nullptr);
     int n;
     const int *ans;
-    while (cin >> n && n)
+    while (cin >> n && n > 0)
     {
+        clock_t cl = clock();
         Alg4Dnmc_PP solver(n);
         ans = solver.solve();
         for (int i=0;i<n;i++)
@@ -222,6 +225,7 @@ int main()
             cout << ans[i] + 1;
             if (i != n-1) cout << ' ';
         }
+        cout << '\n' << double(clock()-cl) / CLOCKS_PER_SEC; //delete when update in oj
         cout << endl;
     }
     return 0;

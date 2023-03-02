@@ -911,6 +911,7 @@ int Alg4Dnmc_P::seed = time(nullptr);
 class Alg4Dnmc_PP
 {
 private:
+
     struct ShuffleGen
     {
         minstd_rand &genInserted;
@@ -1113,4 +1114,4 @@ public:
         return nullptr;
     }
 };
-int Alg4Dnmc_PP::seed = 0;
+int Alg4Dnmc_PP::seed = time(nullptr);
