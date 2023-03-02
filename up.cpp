@@ -25,7 +25,6 @@ private:
     //[2] [3] store the representative
     vector<int> diagCfl[2];
     vector<int> buffer = vector<int>(n);
-    int randomLimit = ceil(3 * n / 4);
     int conflictPairCnt;
     int *pBuffer[8];
     int badCnt = 0;
@@ -178,8 +177,6 @@ public:
         {
             preGenerate();
             bool found = true;
-            for (int i = 0; i < n; i++)
-                buffer[i] = i;
             while (found)
             {
                 found = false;
@@ -189,16 +186,15 @@ public:
                     calBad();
                 int first, second;
                 int tmpCost;
-
                 for (int i = 0; i < n; i++)
                 {
-                    first = badInd[shuffleGen(badCnt)], second = distribution(gen);
-                    if (buffer[i] == first)
+                    first = badInd[shuffleGen(badCnt)], second = i;
+                    if (first == second)
                         continue;
-                    if ((tmpCost = calCost(first, buffer[i])) >= 0)
+                    if ((tmpCost = calCost(first, second)) >= 0)
                         continue;
                     found = true;
-                    swapQueens(first, buffer[i]);
+                    swapQueens(first, second);
                     conflictPairCnt += tmpCost;
                     break;
                 }
@@ -225,7 +221,7 @@ int main()
             cout << ans[i] + 1;
             if (i != n-1) cout << ' ';
         }
-        cout << '\n' << double(clock()-cl) / CLOCKS_PER_SEC; //delete when update in oj
+        //cout << '\n' << double(clock()-cl) / CLOCKS_PER_SEC; //delete when update in oj
         cout << endl;
     }
     return 0;

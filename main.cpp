@@ -14,16 +14,6 @@ int main()
         const int *out = clag.solve(INT32_MAX);
         for (int i=0;i<SIZE;i++)
             cout << out[i] << ' ';
-        /*
-        for (int i=0;i<SIZE;i++)
-        {
-            for (int j=0;j<SIZE;j++)
-            {
-                cout << (board[i][j]?'*':'.');
-            }
-            cout << '\n';
-        }
-        */
         cout << endl;
     }
 
